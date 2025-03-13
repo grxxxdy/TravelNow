@@ -8,6 +8,6 @@ public static class GatewayModule
     public static void AddGatewayModule(this IServiceCollection services)
     {
         services.AddSingleton<GatewayService>();
-        services.AddControllers().AddApplicationPart(typeof(GatewayController).Assembly);
+        services.AddControllers();
     }
 }

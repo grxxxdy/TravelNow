@@ -30,10 +30,10 @@ public class UserService
             return "User with this email already exists.";
         }
         
-        // if (!new EmailAddressAttribute().IsValid(user.email))
-        // {
-        //     return "Invalid email format.";
-        // }
+        if (!new EmailAddressAttribute().IsValid(user.email))
+        {
+            return "Invalid email format.";
+        }
         
         // End checks
         

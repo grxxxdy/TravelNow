@@ -35,7 +35,7 @@ public class RabbitMqListener : BackgroundService
             _channel = await _connection.CreateChannelAsync();
             
             // Declare queue
-            _channel.QueueDeclareAsync(queue: "user_service",
+            await _channel.QueueDeclareAsync(queue: "user_service",
                 durable: true,
                 exclusive: false,
                 autoDelete: false,

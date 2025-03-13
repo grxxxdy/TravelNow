@@ -8,11 +8,11 @@ namespace api_gateway.Controllers;
 
 [ApiController]
 [Route("api/gateway")]
-public class GatewayController : ControllerBase
+public class UserGatewayController : ControllerBase
 {
     private readonly GatewayService _gatewayService;
 
-    public GatewayController(GatewayService service)
+    public UserGatewayController(GatewayService service)
     {
         _gatewayService = service;
     }

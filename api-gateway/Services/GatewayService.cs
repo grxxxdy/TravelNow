@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using api_gateway.Config;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -26,58 +27,47 @@ public class GatewayService : IDisposable
         
         // Declare exchange
         await _channel.ExchangeDeclareAsync(
-            exchange: "gateway_exchange",
+            exchange: QueueConfig.ExchangeName,
             type: ExchangeType.Direct,
             durable: true,
             autoDelete: false
             );
         
-        // Declare user queue
-        await _channel.QueueDeclareAsync(
-            queue: "user_service",
-            durable: true,
-            exclusive: false,
-            autoDelete: false
-            );
-        
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.register");
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.login");
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.get_all");
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.get_by_id");
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.update");
-        await _channel.QueueBindAsync(queue: "user_service", exchange: "gateway_exchange", routingKey: "user.delete");
-        
-        // Declare user response queue
-        await _channel.QueueDeclareAsync(
-            queue: "user_responses",
-            durable: true,
-            exclusive: false,
-            autoDelete: false
-        );
-        
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.register");
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.login");
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.get_all");
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.get_by_id");
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.update");
-        await _channel.QueueBindAsync(queue: "user_responses", exchange: "gateway_exchange", routingKey: "response.user.delete");
-        
-        // Initialize consumer for responses
-        var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.ReceivedAsync += async (model, ea) =>
+        // Declare queues
+        foreach (var queue in QueueConfig.Queues)
         {
-            var responseMessage = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var routingKey = ea.RoutingKey;
+            await _channel.QueueDeclareAsync(
+                queue: queue.Key,
+                durable: true,
+                exclusive: false,
+                autoDelete: false
+            );
 
-            if (_responseTasks.TryRemove(routingKey, out var tcs))
+            foreach (var rKey in queue.Value)
             {
-                tcs.SetResult(responseMessage);
+                await _channel.QueueBindAsync(queue: queue.Key, exchange: QueueConfig.ExchangeName, routingKey: rKey);
             }
+        }
+        
+        // Initialize consumers for responses
+        foreach (var queue in QueueConfig.Queues.Where(q => q.Key.EndsWith("responses")))
+        {
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.ReceivedAsync += async (model, ea) =>
+            {
+                var responseMessage = Encoding.UTF8.GetString(ea.Body.ToArray());
+                var routingKey = ea.RoutingKey;
 
-            await _channel.BasicAckAsync(ea.DeliveryTag, false);
-        };
+                if (_responseTasks.TryRemove(routingKey, out var tcs))
+                {
+                    tcs.SetResult(responseMessage);
+                }
 
-        await _channel.BasicConsumeAsync("user_responses", false, consumer);
+                await _channel.BasicAckAsync(ea.DeliveryTag, false);
+            };
+
+            await _channel.BasicConsumeAsync(queue.Key, false, consumer);
+        }
     }
 
     public async Task<string> SendMessageAsync(string routingKey, object? message)
@@ -94,7 +84,7 @@ public class GatewayService : IDisposable
         var jsonMsg = JsonSerializer.Serialize(message);
 
         await _channel.BasicPublishAsync(
-            exchange: "gateway_exchange",
+            exchange: QueueConfig.ExchangeName,
             routingKey: routingKey,
             body: Encoding.UTF8.GetBytes(jsonMsg)
             );
