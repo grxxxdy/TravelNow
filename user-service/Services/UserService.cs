@@ -35,7 +35,14 @@ public class UserService
             return "Invalid email format.";
         }
         
+        if (user.role != "admin" && user.role != "user")
+        {
+            user.role = "user";
+        }
+        
         // End checks
+
+        user.created_at = DateTime.UtcNow;
         
         _dbContext.users.Add(user);
         await _dbContext.SaveChangesAsync();
@@ -76,11 +83,6 @@ public class UserService
             return "Name, email and password fields are required.";
         }
         
-        if (await _dbContext.users.AnyAsync(u => u.email == updatedUser.email))
-        {
-            return "User with this email already exists.";
-        }
-        
         if (!new EmailAddressAttribute().IsValid(updatedUser.email))
         {
             return "Invalid email format.";
@@ -92,6 +94,11 @@ public class UserService
         {
             return "User with this id does not exist.";
         }
+
+        if (updatedUser.role != "admin" && updatedUser.role != "user")
+        {
+            updatedUser.role = "user";
+        }
         
         // ENd checks
         
@@ -99,7 +106,7 @@ public class UserService
         user.email = updatedUser.email;
         user.password = updatedUser.password;
         user.role = updatedUser.role;
-        user.created_at = updatedUser.created_at;
+        user.created_at = DateTime.SpecifyKind(user.created_at, DateTimeKind.Utc);
 
         _dbContext.users.Update(user);
         await _dbContext.SaveChangesAsync();

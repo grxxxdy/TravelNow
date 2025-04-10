@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Text.Json;
 using api_gateway.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,10 +48,21 @@ public class UserGatewayController : ControllerBase
         return Ok(JsonSerializer.Deserialize<object>(response));
     }
     
-    [Authorize(Roles = "admin")]
+    [Authorize]
     [HttpPut("user/update/{id}")]
     public async Task<IActionResult> UpdateUser([FromBody] User request)
     {
+        // Get user id and role
+        var userId = User.Identity?.Name ?? User.FindFirstValue("sub");
+        if (userId == null) return Unauthorized("UserId not found in token");
+        
+        var role = User.FindFirstValue("role");
+        
+        // Check for role
+        if (role != "admin" && int.Parse(userId) != request.id)
+            return StatusCode(403, new { message = "You don't have permission to update this user." });
+        
+        // Update user
         var response = await _gatewayService.SendMessageAsync("user.update", request);
         return Ok(JsonSerializer.Deserialize<object>(response));
     }

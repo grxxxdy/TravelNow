@@ -55,6 +55,18 @@ public static class QueueConfig
                 "response.post.likes_get",
                 "response.post.comments_get"
             }
+        },
+        {
+            "image_service", new List<string>
+            {
+                "image.process"
+            }
+        },
+        {
+            "image_responses", new List<string>
+            {
+                "response.image.process"
+            }
         }
     };
 

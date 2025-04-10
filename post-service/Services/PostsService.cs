@@ -22,15 +22,9 @@ public class PostsService
             return "Post text cannot be empty.";
         }
         
-        // if (!string.IsNullOrEmpty(post.image_url))
-        // {
-        //     if (!Uri.TryCreate(post.image_url, UriKind.Absolute, out _))
-        //     {
-        //         return "Invalid image URL.";
-        //     }
-        // }
-        
         // End checks
+        
+        post.created_at = DateTime.UtcNow;
 
         try
         {
@@ -69,14 +63,6 @@ public class PostsService
             return "Post text cannot be empty.";
         }
         
-        // if (!string.IsNullOrEmpty(post.image_url))
-        // {
-        //     if (!Uri.TryCreate(post.image_url, UriKind.Absolute, out _))
-        //     {
-        //         return "Invalid image URL.";
-        //     }
-        // }
-        
         var post = await _dbContext.posts.FindAsync(id);
         
         if (post == null)
@@ -88,8 +74,8 @@ public class PostsService
         
         post.text = updatedPost.text;
         post.image_url = updatedPost.image_url;
-        post.created_at = updatedPost.created_at;
-
+        post.created_at = DateTime.SpecifyKind(post.created_at, DateTimeKind.Utc);
+        
         _dbContext.posts.Update(post);
         await _dbContext.SaveChangesAsync();
 
@@ -118,6 +104,8 @@ public class PostsService
             _dbContext.likes.Remove(like);
             return new { success = true, message = "Post unliked successfully." };
         }
+
+        like.created_at = DateTime.UtcNow;
         
         try
         {
@@ -139,6 +127,8 @@ public class PostsService
     
     public async Task<object> CommentPostAsync(Comment comment)
     {
+        comment.created_at = DateTime.UtcNow;
+        
         try
         {
             _dbContext.comments.Add(comment);
