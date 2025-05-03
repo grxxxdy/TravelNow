@@ -97,11 +97,13 @@ public class PostsService
 
     public async Task<object> LikePostAsync(Like like)
     {
-        bool likeExists = await _dbContext.likes.AnyAsync(l => l.user_id == like.user_id && l.post_id == like.post_id);
+        var existingLike = await _dbContext.likes
+            .FirstOrDefaultAsync(l => l.user_id == like.user_id && l.post_id == like.post_id);
 
-        if (likeExists)
+        if (existingLike != null)
         {
-            _dbContext.likes.Remove(like);
+            _dbContext.likes.Remove(existingLike);
+            await _dbContext.SaveChangesAsync();
             return new { success = true, message = "Post unliked successfully." };
         }
 

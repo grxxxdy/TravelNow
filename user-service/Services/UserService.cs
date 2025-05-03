@@ -1,21 +1,22 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using user_service.Entities;
+using user_service.Interfaces;
 
 namespace user_service.Services;
 
 public class UserService
 {
     private readonly UserDbContext _dbContext;
-    private readonly TokenProvider _tokenProvider;
+    private readonly ITokenProvider _tokenProvider;
 
-    public UserService(UserDbContext dbContext, TokenProvider tokenProvider)
+    public UserService(UserDbContext dbContext, ITokenProvider tokenProvider)
     {
         _dbContext = dbContext;
         _tokenProvider = tokenProvider;
     }
     
-    public async Task<string> CreateUserAsync(User user)
+    public virtual async Task<string> CreateUserAsync(User user)
     {
         // CHECKS
         if (string.IsNullOrWhiteSpace(user.name) || 
@@ -50,7 +51,7 @@ public class UserService
         return "User created successfully.";
     }
 
-    public async Task<string> LoginUser(string email, string password)
+    public virtual async Task<string> LoginUser(string email, string password)
     {
         var user = await _dbContext.users.FirstOrDefaultAsync(u => u.email == email);
 
@@ -63,36 +64,36 @@ public class UserService
         return token;
     }
     
-    public async Task<List<User>> GetAllUsersAsync()
+    public virtual async Task<List<User>> GetAllUsersAsync()
     {
         return await _dbContext.users.ToListAsync();
     }
     
-    public async Task<User?> GetUserByIdAsync(int id)
+    public virtual async Task<User?> GetUserByIdAsync(int id)
     {
         return await _dbContext.users.FindAsync(id);
     }
     
-    public async Task<string> UpdateUserAsync(int id, User updatedUser)
+    public virtual async Task<Tuple<string, string>> UpdateUserAsync(int id, User updatedUser)
     {
         // CHECKS
         if (string.IsNullOrWhiteSpace(updatedUser.name) || 
             string.IsNullOrWhiteSpace(updatedUser.email) || 
             string.IsNullOrWhiteSpace(updatedUser.password))
         {
-            return "Name, email and password fields are required.";
+            return new Tuple<string, string>("Name, email and password fields are required.", "");
         }
         
         if (!new EmailAddressAttribute().IsValid(updatedUser.email))
         {
-            return "Invalid email format.";
+            return new Tuple<string, string>("Invalid email format.", "");
         }
         
         var user = await _dbContext.users.FindAsync(id);
         
         if (user == null)
         {
-            return "User with this id does not exist.";
+            return new Tuple<string, string>("User with this id does not exist.", "");
         }
 
         if (updatedUser.role != "admin" && updatedUser.role != "user")
@@ -110,10 +111,14 @@ public class UserService
 
         _dbContext.users.Update(user);
         await _dbContext.SaveChangesAsync();
+        
+        // create new token
+        updatedUser.created_at = DateTime.SpecifyKind(user.created_at, DateTimeKind.Utc);
+        var newToken = _tokenProvider.Create(updatedUser);
 
-        return "User updated successfully.";
+        return new Tuple<string, string>("User updated successfully.", newToken);
     }
-    public async Task<bool> DeleteUserAsync(int id)
+    public virtual async Task<bool> DeleteUserAsync(int id)
     {
         var user = await _dbContext.users.FindAsync(id);
         if (user == null)

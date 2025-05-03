@@ -32,6 +32,6 @@ public class ImageProcessingService
         
         await image.SaveAsync(savePath);
         
-        return $"/images/{fileName}";
+        return $"http://localhost:5149/images/{fileName}";
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using System.Text.Json;
+using api_gateway.Entities;
 using api_gateway.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using user_service.Entities;
 
 namespace api_gateway.Controllers;
 
@@ -26,9 +26,9 @@ public class UserGatewayController : ControllerBase
     }    
     
     [HttpPost("user/login")]
-    public async Task<IActionResult> LoginUser(string email, string password)
+    public async Task<IActionResult> LoginUser([FromBody] LoginRequest request)
     {
-        var response = await _gatewayService.SendMessageAsync("user.login", new { email, password });
+        var response = await _gatewayService.SendMessageAsync("user.login", new { request.email, request.password });
         return Ok(JsonSerializer.Deserialize<object>(response));
     }
     
@@ -40,7 +40,7 @@ public class UserGatewayController : ControllerBase
         return Ok(JsonSerializer.Deserialize<object>(response));
     }   
     
-    [Authorize(Roles = "admin")]
+    [Authorize]
     [HttpGet("user/{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {

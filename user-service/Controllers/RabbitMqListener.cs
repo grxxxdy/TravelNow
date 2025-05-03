@@ -98,6 +98,7 @@ public class RabbitMqListener : BackgroundService
                 break;
             
             case "user.login":
+                Console.WriteLine(message);
                 var loginMsg = JsonSerializer.Deserialize<Dictionary<string, string>>(message);
 
                 if (loginMsg == null || !loginMsg.ContainsKey("email") || !loginMsg.ContainsKey("password"))
@@ -137,7 +138,8 @@ public class RabbitMqListener : BackgroundService
                 }
                 
                 var res = await userService.UpdateUserAsync(updateMsg.id, updateMsg);
-                response = new { success = (res == "User updated successfully."), message = res };
+
+                response = new { success = (res.Item1 == "User updated successfully."), data = new { message = res.Item1, token = res.Item2} };
                 break;
 
             case "user.delete":

@@ -3,10 +3,11 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using user_service.Entities;
+using user_service.Interfaces;
 
 namespace user_service.Services;
 
-public class TokenProvider
+public class TokenProvider : ITokenProvider
 {
     private IConfiguration _configuration;
     
@@ -30,7 +31,8 @@ public class TokenProvider
                 new Claim(JwtRegisteredClaimNames.Sub, user.id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, user.name),
                 new Claim(JwtRegisteredClaimNames.Email, user.email),
-                new Claim(ClaimTypes.Role, user.role)
+                new Claim(ClaimTypes.Role, user.role),
+                new Claim("user_created_at", user.created_at.ToString("o"))
             }),
             SigningCredentials = credentials,
             Issuer = _configuration["JWT:Issuer"],

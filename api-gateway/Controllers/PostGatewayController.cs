@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using System.Text.Json;
+using api_gateway.Entities;
 using api_gateway.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using post_service.Entities;
 
 namespace api_gateway.Controllers;
 

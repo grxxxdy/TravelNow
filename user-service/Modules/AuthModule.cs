@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using user_service.Interfaces;
 using user_service.Services;
 
 namespace user_service.Modules;
@@ -10,7 +11,7 @@ public static class AuthModule
 {
     public static void AddAuthModule(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<TokenProvider>();
+        services.AddSingleton<ITokenProvider, TokenProvider>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
         {

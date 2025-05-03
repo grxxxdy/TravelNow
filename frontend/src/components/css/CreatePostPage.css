@@ -1,0 +1,85 @@
+﻿form {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #606060;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    h2 {
+        text-align: center;
+        color: #ffffff;
+    }
+
+    textarea {
+        resize: vertical;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    input[type="file"] {
+        font-size: 14px;
+        color: white;
+        background-color: #2f2f2f;
+        padding: 6px;
+        border-radius: 5px;
+        border: 1px solid #444;
+    }
+
+    button[type="submit"] {
+        padding: 10px;
+        background-color: #000000;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #3e3e3e;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #444;
+        background-color: #2f2f2f;
+        color: white;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus ,input[type="password"]:focus {
+        outline: none;
+        border-color: #888;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+
+    .file-upload {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #000000;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+        text-align: center;
+        border: none;
+        user-select: none;
+    }
+
+    .file-upload:hover {
+        background-color: #3e3e3e;
+    }
+}
+
